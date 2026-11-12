@@ -1,0 +1,18 @@
+// 论文必须用 XeLaTeX 编译（fontspec 按字体名加载字体，pdflatex 不支持）。
+// LaTeX Workshop 使用 XeLaTeX，在编辑器保存或点击构建按钮时运行。
+
+
+{
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.recipe.default": "first",
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "latexmk (xelatex)",
+            "tools": ["xelatexmk"]
+        },
+        {
+            "name": "latexmk (latexmkrc)",
+            "tools": ["latexmk_rconly"]
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+# LaTeX 编译中间产物，不入库；根目录 main.pdf 不忽略，随仓库一起跟踪
+
+
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lof
+*.lot
+*.lol
+*.out
+*.toc
+*.synctex.gz
+*.xdv
+.DS_Store

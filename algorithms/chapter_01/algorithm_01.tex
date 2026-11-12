@@ -1,0 +1,20 @@
+%% 动态权重自适应迭代优化算法示例，可在正文中按需引入。
+
+
+\begin{thesisalgorithm}{动态权重自适应迭代优化算法 (AdaOpt)}
+  \label{alg:adaopt}
+  \textbf{输入：} 训练样本集合 $\mathcal{D}$，学习率 $\alpha$，衰减系数 $\beta$，最大迭代步数 $T$。
+
+  \textbf{输出：} 优化收敛权重参数 $\mathbf{W}^*$。
+  \begin{algorithmsteps}
+    \item 初始化模型参数 $\mathbf{W}_0 \leftarrow \mathbf{0}$，一阶动量 $\mathbf{m}_0 \leftarrow \mathbf{0}$，时间步 $t \leftarrow 0$；
+    \item \textbf{while} $t < T$ 且 $\|\nabla \mathcal{L}(\mathbf{W}_t)\| > \epsilon$ \textbf{do}
+    \item \quad $t \leftarrow t + 1$；
+    \item \quad 从数据集中抽取当前微批次样本 $\mathcal{B}_t \subset \mathcal{D}$；
+    \item \quad 计算损失函数关于当前权重的梯度值 $\mathbf{g}_t \leftarrow \nabla_{\mathbf{W}}\mathcal{L}(\mathbf{W}_{t-1}; \mathcal{B}_t)$；
+    \item \quad 更新指数移动平均量 $\mathbf{m}_t \leftarrow \beta \mathbf{m}_{t-1} + (1 - \beta) \mathbf{g}_t$；
+    \item \quad 更新网络权重参数 $\mathbf{W}_t \leftarrow \mathbf{W}_{t-1} - \alpha \mathbf{m}_t$；
+    \item \textbf{end while}
+    \item \textbf{return} 最终模型权重 $\mathbf{W}^* = \mathbf{W}_t$。
+  \end{algorithmsteps}
+\end{thesisalgorithm}

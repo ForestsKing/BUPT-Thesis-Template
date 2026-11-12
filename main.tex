@@ -1,0 +1,124 @@
+%% 学位论文入口，填写扉页与答辩信息并引入各篇章。
+
+
+%% =================================================================
+%% 1. 文档类设置（请根据个人实际情况选择对应的文档类参数）
+%% =================================================================
+%% 学术学位博士（与官方模板示例一致）：
+\documentclass[phd,phil]{buptthesis}
+
+%% 其它学位类型（取消相应注释即可使用）：
+%% \documentclass[master,phil]{buptthesis}   % 学术学位硕士
+%% \documentclass[master,eng]{buptthesis}    % 专业学位硕士
+%% \documentclass[phd,eng]{buptthesis}       % 专业学位博士
+
+%% 选项说明：
+%% master / phd : 硕士学位 / 博士学位，默认 master
+%% phil / eng   : 学术学位 / 专业学位，默认 phil
+%% blind        : 盲审版（扉页作者/学号/导师匿名，答辩委员会置空，并自动排除致谢）
+
+%% =================================================================
+%% 2. 用户宏包与自定义配置（可选）
+%% =================================================================
+% 在此加载论文专用宏包。
+
+%% =================================================================
+%% 3. 论文元数据填写（请按实际情况填写）
+%% =================================================================
+
+%% 中文扉页信息
+\BUPTthesiscntitlepage{%
+  confidential = {公开},                  % 密级：仅限涉密学生改写，默认“公开”
+  title = {标题\\标题},                    % 论文题目（不超过36个汉字，超长自动折行加下划线）
+  studentid = {0000000000},               % 10位学号
+  name = {张三},                           % 作者姓名
+  major = {学科专业},                      % 学科专业（一级/二级学科或专业学位领域）
+  trainingmode = {学习方式},               % 培养方式：全日制 / 非全日制
+  supervisor = {李四},                     % 导师姓名（可写“李四”“李四 教授”等形式）
+  institute = {学院}                       % 所在学院
+}
+
+%% 日期配置
+\BUPTdateOptions{%
+  pageYear = {2026},                     % 扉页年份
+  pageMonth = {10},                      % 扉页月份
+  pageDay = {31},                        % 扉页日期
+  dissertationYear = {},                 % 答辩年份（送审版本可留空）
+  dissertationMonth = {},                % 答辩月份
+  dissertationDay = {}                   % 答辩日期
+}
+
+%% 英文扉页信息（英文扉页无密级行，与官方模板一致）
+\BUPTthesisentitlepage{%
+  titleEN = {Title\\Title},
+  studentidEN = {0000000000},
+  nameEN = {Zhang San},
+  majorEN = {Subject},
+  supervisorEN = {Li Si},
+  instituteEN = {Institute}
+}
+
+%% 答辩委员会名单（送审前版本可留空；答辩后终版如实填写）
+\BUPTdissertationcommitteepage{%
+  chairName = {},
+  chairTitle = {},
+  chairOrgan = {},
+  memberAName = {},
+  memberATitle = {},
+  memberAOrgan = {},
+  memberBName = {},
+  memberBTitle = {},
+  memberBOrgan = {},
+  memberCName = {},
+  memberCTitle = {},
+  memberCOrgan = {},
+  memberDName = {},
+  memberDTitle = {},
+  memberDOrgan = {},
+  secretaryName = {},
+  secretaryTitle = {},
+  secretaryOrgan = {}
+}
+
+%% 独创性声明扫描替换页（可选：如果已有签字盖章的整页扫描版PDF，取消下行注释指定文件路径即可）
+%% \statementpage{figures/signed_statement.pdf}
+
+%% =================================================================
+%% 4. 论文正文排版架构
+%% =================================================================
+\begin{document}
+
+%% ---------------- 扉页与版权声明部分 ----------------
+\makechinesetitle      % 中文扉页
+\makeenglishtitle      % 英文扉页
+\makecommitteelist     % 答辩委员会名单
+\makestatement         % 独创性声明与论文使用授权说明
+
+%% ---------------- 前言部分（大写罗马数字页码） ----------------
+\frontmatter
+\include{chapters/cnabstract}      % 中文摘要及关键词
+\include{chapters/enabstract}      % 英文摘要及关键词
+\tableofcontents
+\include{chapters/nomenclature}    % 符号说明（三列表格）
+
+%% ---------------- 正文部分（阿拉伯数字页码，从第1页重新编排） ----------------
+\mainmatter
+\include{chapters/main/chapter_01} % 第一章 绪论
+\include{chapters/main/chapter_02} % 第二章 标题
+\include{chapters/main/chapter_03} % 第三章 标题
+\include{chapters/main/chapter_04} % 第四章 标题
+\include{chapters/main/chapter_05} % 第五章 结论
+
+%% ---------------- 参考文献部分（GB/T 7714-2015 格式） ----------------
+%% 本示例展示多种文献类型。写作时删除下一行，文献表随正文引用生成。
+\nocite{*}
+\bibliographystyle{gbt7714-numerical}
+\bibliography{main}
+
+%% ---------------- 附录与后置章节 ----------------
+\include{chapters/appendix}        % 附录
+\BUPTifblind{}{\include{chapters/acknowledgement}} % 致谢
+\include{chapters/publication}     % 攻读学位期间取得的创新成果目录
+\include{chapters/experience}      % 作者学习经历
+
+\end{document}
