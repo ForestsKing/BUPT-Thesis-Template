@@ -14,10 +14,12 @@
 %% -----------------------------------------------------------------
 %% 1. 文档类选项定义与处理
 %% -----------------------------------------------------------------
-\newif\ifBUPT@option@phd             \BUPT@option@phdfalse
-\newif\ifBUPT@option@master          \BUPT@option@mastertrue
+\newif\ifBUPT@option@phd             \BUPT@option@phdtrue
+\newif\ifBUPT@option@master          \BUPT@option@masterfalse
 \newif\ifBUPT@option@phil            \BUPT@option@philtrue
 \newif\ifBUPT@option@eng             \BUPT@option@engfalse
+\newif\ifBUPT@option@electronic      \BUPT@option@electronicfalse
+\newif\ifBUPT@option@print           \BUPT@option@printtrue
 \newif\ifBUPT@option@blind           \BUPT@option@blindfalse
 \newcommand{\BUPTifblind}[2]{\ifBUPT@option@blind#1\else#2\fi}
 
@@ -37,14 +39,22 @@
   \BUPT@option@philfalse%
   \BUPT@option@engtrue}
 
+%% 输出版本：打印版补齐奇数页，电子版连续排页
+\DeclareOption{electronic}{%
+  \BUPT@option@electronictrue%
+  \BUPT@option@printfalse}
+\DeclareOption{print}{%
+  \BUPT@option@electronicfalse%
+  \BUPT@option@printtrue}
+
 %% 盲审选项：扉页作者/学号/导师匿名，答辩委员会名单置空
 \DeclareOption{blind}{\BUPT@option@blindtrue}
 
 %% 传递其他参数给底层宏包
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 
-%% 默认：硕士学位、学术学位；版式为印刷双面版（每章与每部分从奇数页起）
-\ExecuteOptions{master,phil}
+%% 默认：学术学位博士打印版
+\ExecuteOptions{phd,phil,print}
 \ProcessOptions\relax
 
 %% -----------------------------------------------------------------
@@ -345,6 +355,11 @@
 \fancypagestyle{BUPThdrstyle}{\BUPT@runningpagestyle}
 \fancypagestyle{plain}{\BUPT@runningpagestyle}
 
+% 电子版保留分节换页，跳过为奇数页起排而插入的空白页。
+\ifBUPT@option@electronic
+  \let\cleardoublepage\clearpage
+\fi
+
 %% 前言与正文页码划分
 \let\BUPT@orig@frontmatter\frontmatter
 \renewcommand{\frontmatter}{%
@@ -363,6 +378,7 @@
 }
 
 \AtBeginDocument{%
+  % 封面、答辩委员会名单和声明之后的补白页沿用空白样式。
   \pagestyle{empty}%
 }
 
@@ -980,7 +996,7 @@
 %% -----------------------------------------------------------------
 \newcommand{\makeenglishtitle}{%
   \begingroup
-  \clearpage
+  \cleardoublepage
   \thispagestyle{empty}%
   \linespread{1}\zihao{-4}
   %% 盲审模式：隐藏作者、学号和导师。
@@ -1053,7 +1069,7 @@
 
 \newcommand{\makecommitteelist}{%
   \begingroup
-  \clearpage
+  \cleardoublepage
   \thispagestyle{empty}%
   \vspace*{5.7bp}%
   %% 盲审模式：答辩委员会名单整体置空
@@ -1151,7 +1167,7 @@
     \includepdf[pages={1}]{\BUPT@value@statementscanfile}
   \fi
   \endgroup
-  \cleardoublepage
+  \clearpage
 }
 
 %% -----------------------------------------------------------------
@@ -1171,7 +1187,7 @@
   \BUPT@wordparagraphspacing
   \songti\zihao{4}\setlength{\baselineskip}{20bp}\setlength{\parindent}{2\ccwd}%
 }{%
-  \par\cleardoublepage
+  \par\clearpage
 }
 
 \newcommand{\cnkeywords}[1]{%
@@ -1202,7 +1218,7 @@
   \spaceskip=4.5bp plus 1.5bp minus .3bp\relax
   \frenchspacing
 }{%
-  \par\endgroup\cleardoublepage
+  \par\endgroup\clearpage
 }
 
 \newcommand{\enkeywords}[1]{%
@@ -1223,7 +1239,7 @@
   \vspace{32.6bp}%
   \songti\zihao{-4}\setlength{\baselineskip}{20bp}%
 }{%
-  \par\cleardoublepage
+  \par\clearpage
 }
 
 %% -----------------------------------------------------------------
@@ -1247,7 +1263,7 @@
   \vspace{\BUPT@backmatterheadingsep}%
   \BUPT@appendixbody
 }{%
-  \par\cleardoublepage
+  \par\clearpage
 }
 
 %% 致谢
@@ -1260,7 +1276,7 @@
   \vspace{\BUPT@backmatterheadingsep}%
   \songti\zihao{-4}\setlength{\baselineskip}{20bp}\setlength{\parindent}{2\ccwd}%
 }{%
-  \par\cleardoublepage
+  \par\clearpage
 }
 
 %% 创新成果目录（2025规范最新命名：攻读学位期间取得的创新成果目录）
@@ -1273,7 +1289,7 @@
   \vspace{\BUPT@backmatterheadingsep}%
   \songti\zihao{-4}\setlength{\baselineskip}{20bp}%
 }{%
-  \par\cleardoublepage
+  \par\clearpage
 }
 
 %% 作者学习经历（全文最后一节，结束时不产生多余空白页）
