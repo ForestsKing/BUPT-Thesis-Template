@@ -75,3 +75,9 @@ BUPT-Thesis-Template/
     ├── 基准.pdf                        # 基准文档经 Word 渲染的结果
     └── report.png                      # 论无忧格式检测报告
 ```
+
+## 四、待修复列表
+
+1. `electronic`无法通过论无忧检测，识别不到页眉横线
+
+   ![论无忧格式检测报告](./materials/electronic_bug.png)
