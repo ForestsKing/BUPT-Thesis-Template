@@ -557,7 +557,7 @@
   \ifBUPT@hastablenote
     \end{BUPT@inlineblock}\addvspace{6.04bp}%
   \else
-    \end{BUPT@inlineblock}\addvspace{3.3bp}%
+    \end{BUPT@inlineblock}\addvspace{5.1bp}%
   \fi
 }
 
