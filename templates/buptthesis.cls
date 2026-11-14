@@ -441,8 +441,8 @@
 %% 图注/表注：宋体五号，首行缩进2字符，固定值20磅
 %% 公式居中横排，按章编号右端对齐如 (1-1)
 %% -----------------------------------------------------------------
+%% 9.1 公共题注、注释与随文块
 \DeclareCaptionFont{buptcaption}{\zihao{5}\kaishu\setlength{\baselineskip}{20bp}}
-\DeclareCaptionFont{buptsub}{\songti\zihao{5}\linespread{1}\selectfont}  % 分图名宋体五号（与图题同字号，官方模板渲染）单倍行距
 \newcommand{\BUPT@captiongap}{\hspace{.5em}}
 \DeclareCaptionLabelSeparator{buptspace}{\BUPT@captiongap}
 \captionsetup{
@@ -452,9 +452,51 @@
   justification=centering,
   font=buptcaption
 }
+
+% 图注与表注共用字体、首行缩进和行距。随文图表固定注末行的深度。
+\newif\ifBUPT@inlinenote
+\newcommand{\fignote}[1]{%
+  \ifhmode\par\fi
+  \parbox{\linewidth}{\BUPT@normalparagraphspacing
+    \songti\zihao{5}\setlength{\baselineskip}{20bp}\setlength{\parindent}{2\ccwd}%
+    \indent #1\ifBUPT@inlinenote\nobreak\rule[-3bp]{0pt}{3bp}\fi\par}%
+}
+
+% 随文图表和算法作为整块参与正文分页。参数为块宽和块前留白。
+\newenvironment{BUPT@inlineblock}[2]{%
+  \par\addvspace{#2}%
+  \noindent\hfill\begin{minipage}{#1}%
+}{%
+  \end{minipage}\hfill\null\par
+}
+
+%% 9.2 插图与分图
+\renewcommand{\thefigure}{\thechapter-\arabic{figure}}
+
+\DeclareCaptionFont{buptsub}{\songti\zihao{5}\linespread{1}\selectfont}
 \DeclareCaptionLabelSeparator{buptsubspace}{\hspace{.65em}}
 \captionsetup[sub]{font=buptsub,skip=.8bp,labelsep=buptsubspace}
 \captionsetup[figure][bi-second]{name=Figure,labelsep=space}
+\captionsetup[figure]{skip=12.9bp}
+\AfterEndEnvironment{subfigure}{\captionsetup{skip=6.85bp}}
+
+% 默认随文排版。显式给出浮动参数时，沿用原有 figure 接口。
+\NewDocumentEnvironment{thesisfigure}{o}{%
+  \IfNoValueTF{#1}{%
+    \begin{BUPT@inlineblock}{\linewidth}{7.14bp}%
+    \captionsetup{type=figure}%
+    \BUPT@inlinenotetrue
+    \centering
+  }{\begin{figure}[#1]}%
+}{%
+  \IfNoValueTF{#1}{%
+    \end{BUPT@inlineblock}\addvspace{6.04bp}%
+  }{\end{figure}}%
+}
+
+%% 9.3 表格与表注
+\renewcommand{\thetable}{\thechapter-\arabic{table}}
+
 \captionsetup[table][bi-second]{name=Table,labelsep=space}
 % 普通表与长表使用不同的题注行框；分别分配框内留白，使题名到顶线的距离一致。
 \captionsetup[table]{position=top,belowskip=1.75bp,aboveskip=.25bp}
@@ -476,16 +518,67 @@
 \AtBeginEnvironment{longtable}{\songti\zihao{5}\BUPT@tablerows{18.7bp}}
 \newcolumntype{B}[1]{>{\centering\arraybackslash}m{#1}}
 \newsavebox{\BUPT@centeredtablebox}
-\newenvironment{thesistabular}[1]{%
-  \linespread{1}\songti\zihao{5}\setlength{\tabcolsep}{3.45bp}%
-  \BUPT@tablerows[.665]{18.7bp}%
+% 可选参数依次为单侧列距与行框基线上方的比例。
+\NewDocumentEnvironment{thesistabular}{O{3.45bp} O{.665} m}{%
+  \linespread{1}\songti\zihao{5}\setlength{\tabcolsep}{#1}%
+  \BUPT@tablerows[#2]{18.7bp}%
   \begin{lrbox}{\BUPT@centeredtablebox}%
-  \tabular{#1}%
+    \tabular{#3}%
 }{%
   \endtabular
   \end{lrbox}%
   \makebox[\linewidth][c]{\usebox{\BUPT@centeredtablebox}}%
 }
+
+\newlength{\BUPT@tablenotegap}
+\setlength{\BUPT@tablenotegap}{5.6bp}
+\newif\ifBUPT@hastablenote
+\AtBeginEnvironment{table}{\BUPT@hastablenotefalse}
+\newcommand{\tablenote}[1]{%
+  \par
+  \ifBUPT@hastablenote\else
+    \vskip\BUPT@tablenotegap\relax
+    \BUPT@hastablenotetrue
+  \fi
+  \fignote{#1}%
+}
+\AtEndEnvironment{table}{%
+  \ifBUPT@hastablenote\par\vskip-\BUPT@tablenotegap\relax\fi
+}
+
+\newenvironment{thesistable}{%
+  \begin{BUPT@inlineblock}{\linewidth}{7.14bp}%
+    \captionsetup{type=table,belowskip=1.05bp}%
+    \centering
+    \setlength{\BUPT@tablenotegap}{6.4bp}%
+    \BUPT@inlinenotetrue
+    \BUPT@hastablenotefalse
+}{%
+  \ifBUPT@hastablenote
+    \end{BUPT@inlineblock}\addvspace{6.04bp}%
+  \else
+    \end{BUPT@inlineblock}\addvspace{3.3bp}%
+  \fi
+}
+
+% 续表与专用表格。
+\newcommand{\continuedtablecaption}[1]{%
+  \multicolumn{\LT@cols}{c}{\BUPT@continuedcaption{续表\thetable\BUPT@captiongap#1}}%
+}
+\newcommand{\continuedtablecaptionEN}[1]{%
+  \multicolumn{\LT@cols}{c}{\BUPT@continuedcaption{Table \thetable\space#1\space(continued)}}%
+}
+\newcommand{\BUPT@continuedcaption}[1]{%
+  \kaishu\zihao{5}\rule[-6bp]{0pt}{20bp}\raisebox{-2.08bp}[0pt][0pt]{#1}%
+}
+\setlength{\heavyrulewidth}{1.5bp}
+\setlength{\lightrulewidth}{0.75bp}
+\newcommand{\thesisbottomrule}{\bottomrule}
+\setlength{\LTpre}{3.9bp}
+\setlength{\LTpost}{0pt}
+% 扣除末行下部已占用的空白，再由后续标题或正文加入自己的段距。
+\AfterEndEnvironment{longtable}{\kern-3.3bp}
+
 % 边线在行框内上移，符号和说明文字的基线仍固定相隔 20 磅。
 \newcommand{\BUPT@nomenclaturerule}{%
   \noalign{\vskip-2.2bp\hrule height\heavyrulewidth\vskip2.2bp}%
@@ -507,22 +600,8 @@
   \end{lrbox}%
   \makebox[\linewidth][c]{\kern-.52bp\usebox{\BUPT@centeredtablebox}\kern.52bp}\par
 }
-\newcommand{\continuedtablecaption}[1]{%
-  \multicolumn{\LT@cols}{c}{\BUPT@continuedcaption{续表\thetable\BUPT@captiongap#1}}%
-}
-\newcommand{\continuedtablecaptionEN}[1]{%
-  \multicolumn{\LT@cols}{c}{\BUPT@continuedcaption{Table \thetable\space#1\space(continued)}}%
-}
-\newcommand{\BUPT@continuedcaption}[1]{%
-  \kaishu\zihao{5}\rule[-6bp]{0pt}{20bp}\raisebox{-2.08bp}[0pt][0pt]{#1}%
-}
-\setlength{\heavyrulewidth}{1.5bp}
-\setlength{\lightrulewidth}{0.75bp}
-\newcommand{\thesisbottomrule}{\bottomrule}
-\setlength{\LTpre}{3.9bp}
-\setlength{\LTpost}{0pt}
-% 扣除末行下部已占用的空白，再由后续标题或正文加入自己的段距。
-\AfterEndEnvironment{longtable}{\kern-3.3bp}
+
+%% 9.4 普通浮动图表的兼容设置
 \setlength{\textfloatsep}{0pt}
 \apptocmd{\@floatboxreset}{\centering}{}{}
 
@@ -531,8 +610,35 @@
 %% 页顶插图顶格（LaTeX 默认 \@fptop 带弹性使页顶插图下坠 17pt）
 \AtBeginDocument{\setlength{\@fptop}{0pt}}
 
-\renewcommand{\thefigure}{\thechapter-\arabic{figure}}
-\renewcommand{\thetable}{\thechapter-\arabic{table}}
+% 保留普通 figure 和 table 的浮动间距，兼容已有文档。
+\setlength{\abovecaptionskip}{2bp}
+\setlength{\belowcaptionskip}{0pt}
+\setlength{\intextsep}{9bp}
+% 随文图表已留出题注的行框，下方间距独立于上方间距。
+\newcommand{\BUPT@inlinefloatbelowsep}{%
+  \ifnum\@currtype=\numexpr32*\ftype@figure\relax
+    0pt%
+  \else
+    \ifnum\@currtype=\numexpr32*\ftype@table\relax
+      5.7bp%
+    \else
+      \intextsep
+    \fi
+  \fi
+}
+\patchcmd{\@addtocurcol}{\penalty\interlinepenalty\vskip\intextsep}{%
+  \penalty\interlinepenalty\vskip\BUPT@inlinefloatbelowsep
+}{}{%
+  \ClassError{buptthesis}{Cannot set inline figure spacing}{Check the LaTeX output routine.}%
+}
+\patchcmd{\@addtocurcol}{\global\advance\@textfloatsheight 2\intextsep}{%
+  \global\advance\@textfloatsheight\intextsep
+  \global\advance\@textfloatsheight\BUPT@inlinefloatbelowsep
+}{}{%
+  \ClassError{buptthesis}{Cannot account for inline figure spacing}{Check the LaTeX output routine.}%
+}
+
+%% 9.5 公式、用例与引文
 \renewcommand{\theequation}{\thechapter-\arabic{equation}}
 % 点线从公式右侧延伸到编号左侧，公式及编号仍由 amsmath 定位。
 \NewDocumentEnvironment{thesisequation}{+b}{%
@@ -562,77 +668,24 @@
 \newenvironment{thesisquotation}{%
   \par\kaishu\zihao{5}\setlength{\baselineskip}{20bp}%
 }{\par}
+
+%% 9.6 算法
 \newcounter{thesisalgorithm}[chapter]
 \renewcommand{\thethesisalgorithm}{\thechapter-\arabic{thesisalgorithm}}
 \newenvironment{thesisalgorithm}[1]{%
-  \begin{figure}[htbp]
-  \begin{minipage}{0.9\linewidth}
-  \refstepcounter{thesisalgorithm}%
-  \hrule height 1bp\smallskip
-  \noindent\textbf{算法\thethesisalgorithm}\quad #1\par
-  \smallskip\hrule height 0.5bp\smallskip
+  \begin{BUPT@inlineblock}{.9\linewidth}{7.14bp}
+    \refstepcounter{thesisalgorithm}%
+    \hrule height 1bp\smallskip
+    \noindent\textbf{算法\thethesisalgorithm}\quad #1\par
+    \smallskip\hrule height 0.5bp\smallskip
 }{%
-  \par\smallskip\hrule height 0.5bp
-  \end{minipage}
-  \end{figure}
+    \par\smallskip\hrule height 0.5bp
+  \end{BUPT@inlineblock}\addvspace{6.04bp}%
 }
 \newenvironment{algorithmsteps}{%
   \begin{enumerate}[label=\arabic*:,leftmargin=2em,itemsep=2bp,topsep=2bp]%
-}{\end{enumerate}}
-
-
-\setlength{\abovecaptionskip}{2bp}
-\setlength{\belowcaptionskip}{0pt}
-% 所有插图共用 figure；分图名已占一个行框，组图总题由类自动缩短上方留白。
-\captionsetup[figure]{skip=12.9bp}
-\AfterEndEnvironment{subfigure}{\captionsetup{skip=6.85bp}}
-\newenvironment{thesisfigure}[1][htbp]{\begin{figure}[#1]}{\end{figure}}
-\setlength{\intextsep}{9bp}
-% 随文图表已留出题注的行框，下方间距独立于上方间距。
-\newcommand{\BUPT@inlinefloatbelowsep}{%
-  \ifnum\@currtype=\numexpr32*\ftype@figure\relax
-    0pt%
-  \else
-    \ifnum\@currtype=\numexpr32*\ftype@table\relax
-      5.7bp%
-    \else
-      \intextsep
-    \fi
-  \fi
-}
-\patchcmd{\@addtocurcol}{\penalty\interlinepenalty\vskip\intextsep}{%
-  \penalty\interlinepenalty\vskip\BUPT@inlinefloatbelowsep
-}{}{%
-  \ClassError{buptthesis}{Cannot set inline figure spacing}{Check the LaTeX output routine.}%
-}
-\patchcmd{\@addtocurcol}{\global\advance\@textfloatsheight 2\intextsep}{%
-  \global\advance\@textfloatsheight\intextsep
-  \global\advance\@textfloatsheight\BUPT@inlinefloatbelowsep
-}{}{%
-  \ClassError{buptthesis}{Cannot account for inline figure spacing}{Check the LaTeX output routine.}%
-}
-
-%% 图注与表注专用命令
-\newcommand{\fignote}[1]{%
-  \ifhmode\par\fi%
-  \parbox{\linewidth}{\BUPT@normalparagraphspacing
-    \songti\zihao{5}\setlength{\baselineskip}{20bp}\setlength{\parindent}{2\ccwd}\indent #1\par}%
-}
-% 首条表注与底线之间留空，多条表注仍按 20 磅连续排版。
-\newlength{\BUPT@tablenotegap}
-\setlength{\BUPT@tablenotegap}{5.6bp}
-\newif\ifBUPT@hastablenote
-\AtBeginEnvironment{table}{\BUPT@hastablenotefalse}
-\newcommand{\tablenote}[1]{%
-  \par
-  \ifBUPT@hastablenote\else
-    \vskip\BUPT@tablenotegap\relax
-    \BUPT@hastablenotetrue
-  \fi
-  \fignote{#1}%
-}
-\AtEndEnvironment{table}{%
-  \ifBUPT@hastablenote\par\vskip-\BUPT@tablenotegap\relax\fi
+}{%
+  \end{enumerate}
 }
 
 %% -----------------------------------------------------------------
@@ -646,8 +699,8 @@
 \newlength{\BUPT@value@infowidthEN}
 \setlength{\BUPT@value@titlewidth}{10.18cm}
 \setlength{\BUPT@value@titlewidthEN}{14.0cm}
-\setlength{\BUPT@value@infowidth}{5.22cm}
-\setlength{\BUPT@value@infowidthEN}{5.22cm}
+\setlength{\BUPT@value@infowidth}{8.4cm}
+\setlength{\BUPT@value@infowidthEN}{7.8cm}
 
 \ExplSyntaxOn
 \seq_new:N \l_bupt_chunks_seq
@@ -974,7 +1027,7 @@
       \BUPT@coverlogo
     }\\[1.39cm]
     \BUPTRenderCnTitle{\BUPT@value@title}\\[21.2bp]
-    \hspace*{-34.6bp}{\songti\zihao{4}\bfseries
+    {\songti\zihao{4}\bfseries
       \renewcommand{\arraystretch}{1.86}
       \begin{tabular}{r@{\hspace{0.5em}}l}
         \BUPT@label@studentid    & \BUPTRenderField{\BUPT@value@infowidth}{\songti\zihao{4}\bfseries}{\BUPT@value@studentid}    \\
@@ -1021,7 +1074,6 @@
     \vspace{59.5pt}%
     \BUPTRenderEnTitle{\BUPT@value@titleEN}\par
     \vspace{67.8bp}%
-    \hspace*{-27.5bp}%
     {\rmfamily\fontsize{14pt}{16.8pt}\selectfont\bfseries
       \renewcommand{\arraystretch}{1.86}
       \begin{tabular}{r@{\hspace{0.5em}}l}
