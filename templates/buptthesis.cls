@@ -81,6 +81,7 @@
 \RequirePackage{graphicx}
 \RequirePackage{caption}
 \RequirePackage{bicaption}
+\RequirePackage{newfloat}
 \RequirePackage{booktabs}
 \RequirePackage{array}
 \RequirePackage{longtable}
@@ -543,22 +544,30 @@
   \fignote{#1}%
 }
 \AtEndEnvironment{table}{%
-  \ifBUPT@hastablenote\par\vskip-\BUPT@tablenotegap\relax\fi
+  \ifBUPT@hastablenote
+    \ifBUPT@inlinenote\else\par\vskip-\BUPT@tablenotegap\relax\fi
+  \fi
 }
 
-\newenvironment{thesistable}{%
-  \begin{BUPT@inlineblock}{\linewidth}{7.14bp}%
-    \captionsetup{type=table,belowskip=1.05bp}%
-    \centering
-    \setlength{\BUPT@tablenotegap}{6.4bp}%
-    \BUPT@inlinenotetrue
-    \BUPT@hastablenotefalse
+% 省略位置参数时随文排版，例如 [!t] 可交由 LaTeX 放置在页首。
+\NewDocumentEnvironment{thesistable}{o}{%
+  \IfNoValueTF{#1}{%
+    \begin{BUPT@inlineblock}{\linewidth}{7.14bp}%
+    \captionsetup{type=table}%
+  }{\begin{table}[#1]}%
+  \captionsetup{belowskip=1.05bp}%
+  \centering
+  \setlength{\BUPT@tablenotegap}{6.4bp}%
+  \BUPT@inlinenotetrue
+  \BUPT@hastablenotefalse
 }{%
-  \ifBUPT@hastablenote
-    \end{BUPT@inlineblock}\addvspace{6.04bp}%
-  \else
-    \end{BUPT@inlineblock}\addvspace{5.1bp}%
-  \fi
+  \IfNoValueTF{#1}{%
+    \ifBUPT@hastablenote
+      \end{BUPT@inlineblock}\addvspace{6.04bp}%
+    \else
+      \end{BUPT@inlineblock}\addvspace{5.1bp}%
+    \fi
+  }{\end{table}}%
 }
 
 % 续表与专用表格。
@@ -670,17 +679,29 @@
 }{\par}
 
 %% 9.6 算法
+% 浮动环境仅负责位置，随文和浮动算法共用原有的按章编号。
+\DeclareFloatingEnvironment[placement=tbp,within=none]{BUPT@algorithmfloat}
 \newcounter{thesisalgorithm}[chapter]
 \renewcommand{\thethesisalgorithm}{\thechapter-\arabic{thesisalgorithm}}
-\newenvironment{thesisalgorithm}[1]{%
-  \begin{BUPT@inlineblock}{.9\linewidth}{7.14bp}
-    \refstepcounter{thesisalgorithm}%
-    \hrule height 1bp\smallskip
-    \noindent\textbf{算法\thethesisalgorithm}\quad #1\par
-    \smallskip\hrule height 0.5bp\smallskip
+\NewDocumentEnvironment{thesisalgorithm}{o m}{%
+  \IfNoValueTF{#1}{%
+    \begin{BUPT@inlineblock}{.9\linewidth}{7.14bp}%
+  }{%
+    \begin{BUPT@algorithmfloat}[#1]%
+    \centering\begin{minipage}{.9\linewidth}%
+  }%
+  \refstepcounter{thesisalgorithm}%
+  \hrule height 1bp\smallskip
+  \noindent\textbf{算法\thethesisalgorithm}\quad #2\par
+  \smallskip\hrule height 0.5bp\smallskip
 }{%
-    \par\smallskip\hrule height 0.5bp
-  \end{BUPT@inlineblock}\addvspace{6.04bp}%
+  \par\smallskip\hrule height 0.5bp
+  \IfNoValueTF{#1}{%
+    \end{BUPT@inlineblock}\addvspace{6.04bp}%
+  }{%
+    \end{minipage}\par
+    \end{BUPT@algorithmfloat}%
+  }%
 }
 \newenvironment{algorithmsteps}{%
   \begin{enumerate}[label=\arabic*:,leftmargin=2em,itemsep=2bp,topsep=2bp]%
